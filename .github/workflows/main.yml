@@ -79,7 +79,7 @@ jobs:
                        +nodebug                  \
                        +noaudit                  \
                        +dtb                      \
-                       +empty_vbmeta             \
+                       
           2>&1 | tee config.info
 
       - name: Install gcc-aarch64-linux-gnu
