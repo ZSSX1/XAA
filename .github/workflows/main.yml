@@ -82,8 +82,7 @@ jobs:
                        +empty_vbmeta             \
                        +io_fiops                 \
                        +noksm                    \
-                       +noswap                   \
-                       
+                       +noswap                   \           
           2>&1 | tee config.info
 
       - name: Install gcc-aarch64-linux-gnu
