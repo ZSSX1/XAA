@@ -82,7 +82,7 @@ jobs:
                        +empty_vbmeta             \
                        +io_fiops                 \
                        +noksm                    \
-                       +nozwap                   \
+                       +noswap                   \
                        +nozram                   \
           2>&1 | tee config.info
 
