@@ -993,7 +993,8 @@ __ATTR(freqvar_idlelatency, S_IRUGO | S_IWUSR,
 /*********************************************************************
  *                  INITIALIZE EXYNOS CPUFREQ DRIVER                 *
  *********************************************************************/
-static int cpu_undervolt = 35000;
+ 
+ static int cpu_undervolt = 30000;
  
 static void print_domain_info(struct exynos_cpufreq_domain *domain)
 {
@@ -1058,6 +1059,7 @@ __ATTR(cpu_table_undervolt, 0644,
 static __init void init_sysfs(void) {
 	if (sysfs_create_file(power_kobj, &cpu_table_undervolt.attr))
 		pr_err("failed to create cpu_table_undervolt node\n");
+
 }
 
 static __init int init_table(struct exynos_cpufreq_domain *domain)
