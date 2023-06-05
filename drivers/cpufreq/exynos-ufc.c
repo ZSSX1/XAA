@@ -583,6 +583,7 @@ static ssize_t store_cpufreq_max_limit(struct kobject *kobj, struct kobj_attribu
 {
 	int input;
 	int cpu;
+	struct exynos_cpufreq_domain *domain;
 
 	if (!sscanf(buf, "%8d", &input))
 		return -EINVAL;
