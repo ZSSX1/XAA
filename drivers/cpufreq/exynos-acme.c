@@ -317,7 +317,7 @@ static int update_freq(struct exynos_cpufreq_domain *domain,
 		return 0;
 	}
 
-	ret = cpufreq_driver_target(policy, freq, CPUFREQ_RELATION_H);
+	ret = cpufreq_driver_target(policy, freq, CPUFREQ_RELATION_L); //H
 	cpufreq_cpu_put(policy);
 
 	return ret;
@@ -994,7 +994,7 @@ __ATTR(freqvar_idlelatency, S_IRUGO | S_IWUSR,
  *                  INITIALIZE EXYNOS CPUFREQ DRIVER                 *
  *********************************************************************/
  
- static int cpu_undervolt = 30000;
+ static int cpu_undervolt = 25000;
  
 static void print_domain_info(struct exynos_cpufreq_domain *domain)
 {
@@ -1337,7 +1337,7 @@ static int init_dm(struct exynos_cpufreq_domain *domain,
 	return register_exynos_dm_freq_scaler(domain->dm_type, dm_scaler);
 }
 
-static unsigned long arg_cpu_min_cl0 = 130000;
+static unsigned long arg_cpu_min_cl0 = 120000;
 
 static int __init cpufreq_read_cpu_min_cl0(char *cpu_min_cl0)
 {
@@ -1354,7 +1354,7 @@ static int __init cpufreq_read_cpu_min_cl0(char *cpu_min_cl0)
 }
 __setup("cpu_min_cl0=", cpufreq_read_cpu_min_cl0);
 
-unsigned long arg_cpu_min_cl1 = 377000;
+unsigned long arg_cpu_min_cl1 = 370000;
 
 static int __init cpufreq_read_cpu_min_cl1(char *cpu_min_cl1)
 {
@@ -1371,7 +1371,7 @@ static int __init cpufreq_read_cpu_min_cl1(char *cpu_min_cl1)
 }
 __setup("cpu_min_cl1=", cpufreq_read_cpu_min_cl1);
 
-static unsigned long arg_cpu_max_cl0 = 2106000;
+static unsigned long arg_cpu_max_cl0 = 2116000;
 
 static int __init cpufreq_read_cpu_max_cl0(char *cpu_max_cl0)
 {
@@ -1421,12 +1421,12 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 
 	/*
 	 * If max-freq property exists in device tree, max frequency is
-	 * selected to smaller one between the value defined in device
-	 * tree and CAL. In case of min-freq, min frequency is selected
+	  * selected to the value defined in device tree (ignoring ECT limit)
+	 * In case of min-freq, min frequency is selected
 	 * to bigger one.
 	 */
 	if (!of_property_read_u32(dn, "max-freq", &val))
-		domain->max_freq = min(domain->max_freq, val);
+		domain->max_freq = val;
 	if (!of_property_read_u32(dn, "min-freq", &val))
 		domain->min_freq = max(domain->min_freq, val);
 		
@@ -1447,6 +1447,10 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 
 	if (of_property_read_bool(dn, "need-awake"))
 		domain->need_awake = true;
+		
+		/* Default QoS for user */
+	if (!of_property_read_u32(dn, "user-default-qos", &val))
+		domain->user_default_qos = val;
 
 	domain->boot_freq = cal_dfs_get_boot_freq(domain->cal_id);
 	domain->resume_freq = cal_dfs_get_resume_freq(domain->cal_id);
