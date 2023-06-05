@@ -781,7 +781,8 @@ config HAVE_IRQ_TIME_ACCOUNTING
 
 config HAVE_MOVE_PMD
 
-	bool	help
+	bool	
+	help
 
 	  Archs that select this are able to move page tables at the PMD level.
 
