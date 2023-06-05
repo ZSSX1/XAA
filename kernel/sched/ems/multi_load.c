@@ -294,10 +294,7 @@ unsigned long ml_boosted_cpu_util(int cpu)
 	if (bg->group[STUNE_TOPAPP].tasks)		
 		fv_boost = boost;
 #endif
-
-	if (fv_boost > boost)
-		boost = fv_boost;
-
+	
 	return util + schedtune_margin(capacity, util, boost);
 }
 
