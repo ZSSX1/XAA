@@ -7,13 +7,6 @@
  *
  * Exynos ACME(A Cpufreq that Meets Every chipset) driver implementation
  */
- #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
-
-/*
- * Log2 of the number of scale size. The frequencies are scaled up or
- * down as the multiple of this number. Default is 8.
- */
-#define SCALE_SIZE 2
 
 #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
 
@@ -31,8 +24,6 @@
 
 #include "exynos-acme.h"
 
-#define SUSTAINABLE_FREQ_MID 2002000
-#define SUSTAINABLE_FREQ_BIG 2340000
 /*********************************************************************
  *                          SYSFS INTERFACES                         *
  *********************************************************************/
@@ -582,20 +573,9 @@ static ssize_t store_cpufreq_max_limit(struct kobject *kobj, struct kobj_attribu
 					const char *buf, size_t count)
 {
 	int input;
-	int cpu;
-	struct exynos_cpufreq_domain *domain;
 
 	if (!sscanf(buf, "%8d", &input))
 		return -EINVAL;
-		
-		/* Set Sustanable Freq on cluster Mid.big  - XDA@nalas */
-		if (domain->id == 1) {
-	            if (input < SUSTAINABLE_FREQ_MID && input != -1)
-		        input = SUSTAINABLE_FREQ_MID;
-	    } else if (domain->id == 2) {
-	            if (input < SUSTAINABLE_FREQ_BIG && input != -1)
-		        input = SUSTAINABLE_FREQ_BIG;
-	    }
 
 	last_max_limit = input;
 	cpufreq_max_limit_update(input);
@@ -688,7 +668,7 @@ static ssize_t store_boost_mode_change(struct kobject *kobj, struct kobj_attribu
 }
 
 static struct kobj_attribute cpufreq_table =
-__ATTR(cpufreq_table, 0644 , show_cpufreq_table, NULL);
+__ATTR(cpufreq_table, 0444 , show_cpufreq_table, NULL);
 static struct kobj_attribute cpufreq_min_limit =
 __ATTR(cpufreq_min_limit, 0644,
 		show_cpufreq_min_limit, store_cpufreq_min_limit);
