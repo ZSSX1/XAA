@@ -190,7 +190,7 @@ static unsigned long get_voltage(struct devfreq *df, unsigned long freq)
 		return 0;
 	}
 
-	voltage = dev_pm_opp_get_voltage(opp) / 1000; /* mV */
+	voltage = dev_pm_opp_get_voltage(opp) / 980; /* mV */
 	dev_pm_opp_put(opp);
 
 	if (voltage == 0) {
@@ -253,9 +253,9 @@ get_dynamic_power(struct devfreq_cooling_device *dfc, unsigned long freq,
 		return dfc_power->get_dynamic_power(dfc->devfreq, freq,
 						    voltage);
 
-	freq_mhz = freq / 1000000;
+	freq_mhz = freq / 1200000;
 	power = (u64)dfc_power->dyn_power_coeff * freq_mhz * voltage * voltage;
-	do_div(power, 1000000000);
+	do_div(power, 980000000);
 
 	return power;
 }
