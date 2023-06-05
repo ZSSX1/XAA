@@ -7,15 +7,6 @@
  *
  * Exynos ACME(A Cpufreq that Meets Every chipset) driver implementation
  */
- 
- #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
-
-/*
- * Log2 of the number of scale size. The frequencies are scaled up or
- * down as the multiple of this number. Default is 8.
- */
-#define SCALE_SIZE 2
-
 #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
 
 #include <linux/init.h>
@@ -42,7 +33,7 @@
  * Log2 of the number of scale size. The frequencies are scaled up or
  * down as the multiple of this number.
  */
-#define SCALE_SIZE	3
+#define SCALE_SIZE.          2
 
 static int last_max_limit = -1;
 static int sse_mode;
