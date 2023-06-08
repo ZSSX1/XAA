@@ -190,7 +190,7 @@ static inline int performance_multiplier(unsigned long nr_iowaiters, unsigned lo
 	/* mult += 2 * get_loadavg(); */
 
 	/* for IO wait tasks (per cpu!) we add 5x each */
-	mult += 2 * nr_iowaiters;
+	mult += 10 * nr_iowaiters;
 
 	return mult;
 }
@@ -293,10 +293,9 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev,
 		       bool *stop_tick)
 {
 	struct menu_device *data = this_cpu_ptr(&menu_devices);
-	
 	struct cpuidle_info *idle_info = this_cpu_ptr(&cpuidle_inf);
 	struct device *device = get_cpu_device(dev->cpu);
-	int latency_req = pm_qos_request_for_cpu(PM_QOS_CPU_DMA_LATENCY, dev->cpu);
+	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
 	int i;
 	int first_idx;
 	int idx;
