@@ -68,7 +68,7 @@ jobs:
                        -morosound                \
                        +boeffla_wl_blocker       \
                        +fp_boost                \
-                       +1000hz                   \
+                       +500hz                   \
                        +io_anxiety               \
                        +nohardening2             \
                        +performance              \
