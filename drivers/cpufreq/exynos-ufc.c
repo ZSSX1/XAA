@@ -31,7 +31,7 @@
  * Log2 of the number of scale size. The frequencies are scaled up or
  * down as the multiple of this number.
  */
-#define SCALE_SIZE	3
+#define SCALE_SIZE           2
 
 static int last_max_limit = -1;
 static int sse_mode;
