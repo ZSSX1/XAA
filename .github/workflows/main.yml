@@ -87,6 +87,7 @@ jobs:
                        +tcp_cubic                \
                        +io_zen                   \
                        +mass_storage             \
+                       +tcp_window_64k           \
           2>&1 | tee config.info
 
       - name: Install gcc-aarch64-linux-gnu
