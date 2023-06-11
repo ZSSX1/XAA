@@ -174,11 +174,11 @@ config ARM_EXYNOS9810_BUS_DEVFREQ
 
 if DEVFREQ_BOOST
 
-config DEVFREQ_INPUT_BOOST_DURATION_MS
-	int "Input boost duration"
+config config DEVFREQ_MIF_BOOST_DURATION_MS
+	int "MIF boost duration"
 	default "100"
 	help
-	  Input boost duration in milliseconds for all boostable devices.
+	  MIF boost duration in milliseconds for all boostable devices.
 
 config DEVFREQ_WAKE_BOOST_DURATION_MS
 	int "Wake boost duration"
