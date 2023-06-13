@@ -143,6 +143,7 @@ int devfreq_update_status(struct devfreq *devfreq, unsigned long freq)
 	int lev, prev_lev = 0, ret = 0;
 	unsigned long cur_time;
 
+	lockdep_assert_held(&devfreq->lock);
 	cur_time = jiffies;
 
 	/* Immediately exit if previous_freq is not initialized yet. */
@@ -581,11 +582,6 @@ static void devfreq_dev_release(struct device *dev)
 	struct devfreq *devfreq = to_devfreq(dev);
 
 	mutex_lock(&devfreq_list_lock);
-	if (IS_ERR(find_device_devfreq(devfreq->dev.parent))) {
-		mutex_unlock(&devfreq_list_lock);
-		dev_warn(&devfreq->dev, "releasing devfreq which doesn't exist\n");
-		return;
-	}
 	list_del(&devfreq->node);
 	mutex_unlock(&devfreq_list_lock);
 
@@ -646,6 +642,7 @@ struct devfreq *devfreq_add_device(struct device *dev,
 	devfreq->dev.parent = dev;
 	devfreq->dev.class = devfreq_class;
 	devfreq->dev.release = devfreq_dev_release;
+	INIT_LIST_HEAD(&devfreq->node);
 	devfreq->profile = profile;
 	strncpy(devfreq->governor_name, governor_name, DEVFREQ_NAME_LEN);
 	devfreq->previous_freq = profile->initial_freq;
@@ -1028,6 +1025,14 @@ err_out:
 }
 EXPORT_SYMBOL(devfreq_remove_governor);
 
+static ssize_t name_show(struct device *dev,
+			struct device_attribute *attr, char *buf)
+{
+	struct devfreq *devfreq = to_devfreq(dev);
+	return sprintf(buf, "%s\n", dev_name(devfreq->dev.parent));
+}
+static DEVICE_ATTR_RO(name);
+
 static ssize_t governor_show(struct device *dev,
 			     struct device_attribute *attr, char *buf)
 {
@@ -1100,7 +1105,7 @@ static ssize_t available_governors_show(struct device *d,
 	 * The devfreq with immutable governor (e.g., passive) shows
 	 * only own governor.
 	 */
-	if (df->governor->immutable) {
+	if (df->governor && df->governor->immutable) {
 		count = scnprintf(&buf[count], DEVFREQ_NAME_LEN,
 				   "%s ", df->governor_name);
 	/*
@@ -1149,7 +1154,29 @@ static ssize_t target_freq_show(struct device *dev,
 {
 	return sprintf(buf, "%lu\n", to_devfreq(dev)->previous_freq);
 }
-static DEVICE_ATTR_RO(target_freq);
+
+static ssize_t target_freq_store(struct device *dev,
+					  struct device_attribute *attr,
+					  const char *buf, size_t count)
+{
+	struct devfreq *devfreq = to_devfreq(dev);
+	unsigned int freq;
+	int ret;
+
+	if (!devfreq->governor)
+		return -EINVAL;
+
+	ret = sscanf(buf, "%u", &freq);
+	if (ret != 1)
+		return -EINVAL;
+
+	devfreq->previous_freq = freq;
+
+	ret = count;
+
+	return ret;
+}
+static DEVICE_ATTR_RW(target_freq);
 
 static ssize_t polling_interval_show(struct device *dev,
 				     struct device_attribute *attr, char *buf)
@@ -1188,8 +1215,39 @@ static ssize_t name##_show					\
 show_one(min_freq);
 show_one(max_freq);
 
-static DEVICE_ATTR_RO(min_freq);
-static DEVICE_ATTR_RO(max_freq);
+#define store_one(name)						\
+static ssize_t name##_store					\
+(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)	\
+{								\
+	struct devfreq *devfreq = to_devfreq(dev);	\
+	unsigned int freq;	\
+	int ret;	\
+	\
+	if (!devfreq->governor)	\
+		return -EINVAL;	\
+	\
+	ret = sscanf(buf, "%u", &freq);	\
+	if (ret != 1)	\
+		return -EINVAL;	\
+	\
+	devfreq->name = freq; \
+	\
+	mutex_lock(&devfreq->lock);	\
+	ret = update_devfreq(devfreq);	\
+	mutex_unlock(&devfreq->lock);	\
+	\
+	if (ret && ret != -EAGAIN)	\
+		return ret;	\
+	\
+	ret = count;	\
+	\
+	return ret;	\
+}
+store_one(min_freq);
+store_one(max_freq);
+
+static DEVICE_ATTR_RW(min_freq);
+static DEVICE_ATTR_RW(max_freq);
 
 static ssize_t available_frequencies_show(struct device *d,
 					  struct device_attribute *attr,
@@ -1230,11 +1288,16 @@ static ssize_t trans_stat_show(struct device *dev,
 	int i, j;
 	unsigned int max_state = devfreq->profile->max_state;
 
-	if (!devfreq->stop_polling &&
-			devfreq_update_status(devfreq, devfreq->previous_freq))
-		return 0;
 	if (max_state == 0)
 		return sprintf(buf, "Not Supported.\n");
+
+	mutex_lock(&devfreq->lock);
+	if (!devfreq->stop_polling &&
+			devfreq_update_status(devfreq, devfreq->previous_freq)) {
+		mutex_unlock(&devfreq->lock);
+		return 0;
+	}
+	mutex_unlock(&devfreq->lock);
 
 	len = sprintf(buf, "     From  :   To\n");
 	len += sprintf(buf + len, "           :");
@@ -1289,6 +1352,7 @@ static ssize_t time_in_state_show(struct device *dev,
 static DEVICE_ATTR_RO(time_in_state);
 
 static struct attribute *devfreq_attrs[] = {
+	&dev_attr_name.attr,
 	&dev_attr_governor.attr,
 	&dev_attr_available_governors.attr,
 	&dev_attr_cur_freq.attr,
