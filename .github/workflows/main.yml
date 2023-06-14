@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: [ "N975F" ]
+        model: [ "G970F,G973F,G975F", "N970F,N975F" ]
 
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +55,7 @@ jobs:
           set -e -o pipefail
           ./cruelbuild config                    \
                        model=${{ matrix.model }} \
-                       name="KanekiCruelPerf"        \
+                       name="test"        \
                        toolchain=$TOOLCHAIN      \
                        +magisk                   \
                        +nohardening              \
@@ -65,29 +65,8 @@ jobs:
                        +sdfat                    \
                        +ntfs                     \
                        +force_dex_wqhd           \
-                       -morosound                \
+                       +morosound                \
                        +boeffla_wl_blocker       \
-                       +fp_boost                \
-                       +500hz                   \
-                       +io_anxiety               \
-                       +nohardening2             \
-                       +performance              \
-                       +fake_config              \
-                       +noatime                  \
-                       +io_maple                 \
-                       +nomodules                \
-                       +nodebug                  \
-                       +noaudit                  \
-                       +dtb                      \
-                       +empty_vbmeta             \
-                       +io_fiops                 \
-                       +noksm                    \
-                       +noswap                   \
-                       +nozram                   \
-                       +tcp_cubic                \
-                       +io_zen                   \
-                       +mass_storage             \
-                       +tcp_window_64k           \
           2>&1 | tee config.info
 
       - name: Install gcc-aarch64-linux-gnu
